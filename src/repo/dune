@@ -1,4 +1,11 @@
 (library
+  (name learnocaml_extra_lib)
+  (wrapped false)
+  (modules Learnocaml_extra_lib)
+  (libraries lwt findlib)
+)
+
+(library
  (name learnocaml_repository)
  (wrapped false)
  (modules Learnocaml_index
