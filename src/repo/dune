@@ -59,5 +59,6 @@
             grading_cli
             learnocaml_repository
             learnocaml_data
-            learnocaml_tutorial_parser)
+            learnocaml_tutorial_parser
+            learnocaml_extra_lib)
 )

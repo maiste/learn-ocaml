@@ -92,6 +92,14 @@ let spawn_grader
       | Unix.WEXITED 0 -> Lwt.return (Ok ())
       | _ -> Lwt.return (Error (-1))
 
+let construct_libraries dest_dir =
+ if Sys.file_exists (Filename.concat !exercises_dir "extra") then
+   let in_dir = !exercises_dir in
+   let out_dir = Filename.concat dest_dir "js/" in
+   Learnocaml_extra_lib.build ~in_dir ~out_dir "extra"
+ else
+  Lwt.return ()
+
 let main dest_dir =
   let exercises_index =
     match !exercises_index with
@@ -99,6 +107,7 @@ let main dest_dir =
     | None -> !exercises_dir / "index.json" in
   let exercises_dest_dir = dest_dir / Learnocaml_index.exercises_dir in
   Lwt_utils.mkdir_p exercises_dest_dir >>= fun () ->
+  construct_libraries dest_dir >>= fun () ->
   Lwt.catch
     (fun () ->
        (if Sys.file_exists exercises_index then
