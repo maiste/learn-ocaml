@@ -6,7 +6,13 @@
  * Learn-OCaml is distributed under the terms of the MIT license. See the
  * included LICENSE file for details. *)
 
-(* Code to build an image *)
+
+(** [construct_image img] renders an image as a svg code string. This code is
+    used to display the image in the toplevel, using the toplevel directive
+    "#install_printer".
+
+    The size isn't taken into account in this function because a pretty printer
+    doesn't take one. *)
 let construct_image i =
   let coeff = 1.0 in
   let b = Buffer.create 2048 in
@@ -18,8 +24,7 @@ let construct_image i =
   Buffer.contents b
 
 (* Prelude for pretty printer *)
-let prelude_pp = "
-let pp_svg _ i = construct_image i |> print_svg;;"
+let prelude_pp = "let pp_svg _ i = construct_image i |> print_svg;;"
 
 
 (* List of pretty printer to deploy in toplevel *)

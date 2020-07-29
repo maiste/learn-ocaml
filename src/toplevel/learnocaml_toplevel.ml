@@ -385,17 +385,16 @@ let load_pp err top pps =
     Format.sprintf "open Learnocaml_toplevel_pp;; %s"
       Learnocaml_toplevel_pp.prelude_pp
   in
-  let rec loading err = function
-    | [] -> err
-    | pp :: pps ->
-      let pp = Format.sprintf "#install_printer %s;;" pp in
-      err
-      >>= (fun _ -> load ~print_outcome:false top pp)
-      >>= (fun _ -> loading err pps)
+  let rec loading = function
+    | [] -> Lwt.return_unit
+    | code :: cs ->
+      load ~print_outcome:false top code
+      >>= (fun _ -> loading cs)
   in
-  err
-  >>= (fun _ -> load ~print_outcome:false top prelude_pp)
-  >>= (fun _ -> loading err pps)
+  let pps =
+    List.map (fun pp -> Format.sprintf "#install_printer %s;;" pp) pps
+  in
+  err >>= (fun _ -> loading (prelude_pp::pps))
 
 let welcome_phrase () =
   [%i"Printf.printf \"Welcome to OCaml %s\\n%!\" (Sys.ocaml_version);\n\
