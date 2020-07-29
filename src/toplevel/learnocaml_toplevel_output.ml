@@ -181,23 +181,14 @@ let output_html ?phrase output html =
   insert output ?phrase (Html (html, div)) div
 
 
-(* Module to generate new id *)
-module Id_generator : sig
-  val get_fresh_id : unit -> int
-  val reset_ids : unit -> unit
-end =
-struct
-  let id = ref 0
+(** This function generates a new id each time it's called. *)
+let get_fresh_id =
+  let r = ref 0 in
+  fun () -> incr r ; !r
 
-  let get_fresh_id () =
-    let idx = !id in
-    id := !id + 1;
-    idx
-
-  let reset_ids () =
-    id := 0
-end
-
+(** [replace_markup idx markup svg] replaces markup field id by
+    "id-idx" to avoid interferences between svg image in the
+    [svg] string. *)
 let replace_markup idx markup svg =
   let open Re in
   let f g = Format.sprintf " %s=\"%s-%d\"" markup (Group.get g 1) idx in
@@ -205,13 +196,24 @@ let replace_markup idx markup svg =
   let regexp = Posix.compile_pat regexp in
   replace ~f regexp svg
 
+  (** [replace_link svg] changes all "l:href" markup by "href" in the [svg]
+    string to be readable by a web browser *)
 let replace_link svg =
   let open Re in
   let regexp = Posix.compile_pat "l:href" in
   replace_string regexp ~by:"href" svg
 
+  (** [rewrite_svg svg_code] updates this [svg] code to make it readable by
+    a web browser:
+    - Vg generates images with ids that start from zero. If you call
+    the render function more than once, ids between images can generate
+    interferences. The call to {replace_markup idx "id" svg} replaces each
+    id by a fresh one in the id field. {replace_markup idx "l:href" svg}
+    changes id in the l:href field.
+    - Link type uses by Vg is "l:href". However, web browsers use "href".
+    {replace_link svg} change link type to be browser compatible. *)
 let rewrite_svg svg =
-  let idx = Id_generator.get_fresh_id () in
+  let idx = get_fresh_id () in
   replace_markup idx "id" svg
   |> replace_markup idx "l:href"
   |> replace_link
@@ -362,7 +364,6 @@ let output_warning ?phrase output warning =
       insert output ~phrase (Warning (phrase.warnings, warning, pre)) pre
 
 let clear output =
-  Id_generator.reset_ids ();
   Js_utils.Manip.removeChildren output.container ;
   output.blocks <- []
 
